@@ -43,3 +43,17 @@ class Skill(models.Model):
         
     def __str__(self):
         return self.name
+    
+    @property
+    def future_risk(self):
+    # simulate 7 days ahead
+        future_days = self.days_since_practice + 7
+
+        future_score = self.progress - (future_days * 3)
+
+        if future_score < 30:
+            return "High"
+        elif future_score < 60:
+            return "Medium"
+        else:
+            return "Low"    

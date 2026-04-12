@@ -1,0 +1,52 @@
+skill,modern_alternatives,demand_score,category
+Python,"Machine Learning, AI, Data Science, Django",98,Tech
+Java,"Spring Boot, Microservices",90,Tech
+C++,"Game Development, Competitive Programming",75,Tech
+JavaScript,"React, Node.js, TypeScript",95,Web
+HTML,"React, Next.js",88,Web
+CSS,"Tailwind, Bootstrap, UI/UX",85,Web
+SQL,"PostgreSQL, Data Engineering",92,Data
+Excel,"Power BI, Data Analytics",87,Business
+Data Analytics,"Power BI, SQL, Python",95,Data
+Machine Learning,"Deep Learning, AI",99,Tech
+AI,"NLP, Computer Vision",99,Tech
+Cloud Computing,"AWS, Azure, DevOps",98,Tech
+Cybersecurity,"Ethical Hacking, Network Security",97,Tech
+DevOps,"Docker, Kubernetes",96,Tech
+
+MBA,"Business Analytics, Product Management, Digital Marketing, Finance",95,Business
+BBA,"Marketing, HR Management, Analytics",90,Business
+Engineering,"Programming, AI, Data Science",95,Tech
+Commerce,"Accounting, Finance, Investment Analysis",90,Finance
+Arts,"Content Writing, Media, Design",85,Creative
+Science,"Research, Lab Technology, Data Analysis",88,Academic
+
+Marketing,"SEO, Digital Marketing, Content Strategy",93,Business
+Sales,"CRM, Business Development",88,Business
+HR,"HR Analytics, Talent Management",86,Business
+Finance,"Investment Banking, FinTech",92,Finance
+Accounting,"Tally, Financial Analytics",85,Finance
+
+Graphic Design,"UI/UX, Figma",90,Design
+UI Design,"UX Design, Product Design",92,Design
+Photography,"Photo Editing, Content Creation",84,Creative
+Video Editing,"Motion Graphics, Premiere Pro",89,Creative
+Writing,"Copywriting, Blogging",88,Creative
+Public Speaking,"Leadership, Communication Skills",92,Soft Skills
+
+Cooking,"Food Blogging, Nutrition, Culinary Arts",85,Lifestyle
+Fitness,"Personal Training, Nutrition",87,Lifestyle
+Yoga,"Wellness Coaching, Meditation",82,Lifestyle
+Gaming,"Game Development, Streaming",86,Entertainment
+Music,"Music Production, Sound Engineering",88,Creative
+Dancing,"Choreography, Performance Arts",84,Creative
+
+Law,"Corporate Law, Legal Consulting",92,Professional
+Medical,"Healthcare Tech, Telemedicine",94,Professional
+Nursing,"Patient Care, Healthcare Management",88,Professional
+
+Travel,"Tourism Management, Travel Blogging",85,Lifestyle
+Event Management,"Corporate Events, Wedding Planning",89,Business
+E-commerce,"Shopify, Digital Marketing",93,Business
+Retail,"Store Management, E-commerce",88,Business
+Logistics,"Supply Chain Management",90,Business
