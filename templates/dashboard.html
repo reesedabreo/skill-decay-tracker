@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - SkillDK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="dashboard-body">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+
+        <a class="navbar-brand fw-bold fs-4 text-white" href="#">
+            <i class="fas fa-brain me-2"></i>SkillDK
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+
+            <span class="badge bg-success px-3 py-2">Live</span>
+
+            <div class="user-info px-4 py-2 rounded-pill d-flex align-items-center gap-2">
+                <i class="fas fa-user text-white"></i>
+                <span id="userName" class="fw-semibold text-white small">User</span>
+            </div>
+
+            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm px-4">
+    <i class="fas fa-sign-out-alt me-2"></i>Logout
+</a>
+             
+
+        </div>
+    </div>
+</nav>
+
+<!-- ================= CONTENT ================= -->
+<div class="dashboard-content pt-5">
+
+    <!-- ===== STATS ===== -->
+    <section class="container-fluid py-5">
+
+        <div class="row g-4 mb-5">
+
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card text-center p-4 rounded-3 h-100">
+                    <i class="fas fa-list fa-2x mb-3 opacity-75"></i>
+                    <h2 class="fw-bold mb-1">{{ total_skills }}</h2>
+                    <p class="mb-0 small">Skills Tracked</p>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card gradient-success text-center p-4 rounded-3 h-100">
+                    <i class="fas fa-shield-alt fa-2x mb-3 opacity-75"></i>
+                    <h2 class="fw-bold mb-1">{{ healthy_skills }}</h2>
+                    <p class="mb-0 small">Healthy Skills</p>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card gradient-warning text-center p-4 rounded-3 h-100">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3 opacity-75"></i>
+                    <h2 class="fw-bold mb-1">{{ at_risk_skills }}</h2>
+                    <p class="mb-0 small">At Risk</p>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="stat-card gradient-danger text-center p-4 rounded-3 h-100">
+                    <i class="fas fa-fire fa-2x mb-3 opacity-75"></i>
+                    <h2 id="recommendations" class="fw-bold mb-1">4</h2>
+                    <p class="mb-0 small">Hot Recs</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CHART + TRENDS ===== -->
+        <div class="row g-4">
+
+            <div class="col-xl-8">
+                <div class="card rounded-3">
+                    <div class="card-header bg-transparent py-3 border-0">
+                        <h5 class="mb-0 fw-bold text-coffee-dark">
+                            <i class="fas fa-chart-radar me-2 text-caramel"></i>
+                            Skill Health Radar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="healthChart" height="350"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4">
+                <div class="card rounded-3 h-100">
+                    <div class="card-header bg-transparent py-3 border-0">
+                        <h5 class="mb-0 fw-bold text-coffee-dark">
+                            <i class="fas fa-bolt me-2 text-caramel"></i>
+                            2026 Trends
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="trendingList">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ===== SKILLS SECTION ===== -->
+    <section class="container-fluid py-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 fw-bold mb-0 text-coffee-dark">
+                <i class="fas fa-list-ul me-2 text-caramel"></i>
+                Your Skills
+            </h2>
+
+            <button class="btn btn-primary px-4 py-2 fw-semibold"
+                    data-bs-toggle="modal"
+                    data-bs-target="#skillModal">
+                <i class="fas fa-plus me-2"></i>
+                Add Skill
+            </button>
+        </div>
+
+        <div class="row g-4">
+
+    {% for skill in skills %}
+<div class="col-md-4">
+    <div class="card p-4 rounded-3 shadow-sm h-100">
+
+        <h5 class="fw-bold">{{ skill.name }}</h5>
+
+        <p class="mb-1"><strong>Category:</strong> {{ skill.category }}</p>
+
+     <p class="mb-1">
+    <strong>Progress:</strong>
+    {{ skill.completed_hours }} / {{ skill.target_hours }} hours
+    ({{ skill.progress }}%)
+</p>
+
+<div class="progress mt-2" style="height: 20px;">
+    <div class="progress-bar bg-success"
+         role="progressbar"
+         style="width: {{ skill.progress }}%;"
+         aria-valuenow="{{ skill.progress }}"
+         aria-valuemin="0"
+         aria-valuemax="100">
+    </div>
+</div>
+<p class="mt-2">
+    Days Since Last Practice: {{ skill.days_since_practice }}
+</p>
+<p>
+    Health Score: {{ skill.health_score }} / 100
+</p>
+<p>
+    Risk Level:
+    {% if skill.risk_level == "Low" %}
+        <span class="badge bg-success">Low</span>
+    {% elif skill.risk_level == "Medium" %}
+        <span class="badge bg-warning text-dark">Medium</span>
+    {% else %}
+        <span class="badge bg-danger">High</span>
+    {% endif %}
+</p>
+  <!-- ✅ ADD THIS FORM HERE -->
+        <form method="POST"
+              action="{% url 'add_hours' skill.id %}"
+              class="mt-3">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="number"
+                       name="hours"
+                       min="1"
+                       class="form-control"
+                       placeholder="Add hours"
+                       required>
+                <button class="btn btn-success" type="submit">
+                    + Add
+                </button>
+            </div>
+        </form>
+        <!-- ✅ END FORM -->
+    </div>
+</div>
+{% empty %}
+    <p class="text-muted">No skills added yet.</p>
+    {% endfor %}
+
+</div>
+
+    </section>
+
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="skillModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-3 border-0">
+
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-coffee-dark">
+                    Log Skill Practice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+              <form method="POST">
+    {% csrf_token %}
+
+    <div class="row">
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium">Skill Name</label>
+            <input type="text"
+                   name="name"
+                   class="form-control form-control-lg rounded-3"
+                   required>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label fw-medium">Target Hours</label>
+            <input type="number"
+                   name="target_hours"
+                   class="form-control form-control-lg rounded-3"
+                   min="1"
+                   required>
+        </div>
+
+        <div class="col-12 mb-3">
+            <label class="form-label fw-medium">Category</label>
+            <input type="text"
+                   name="category"
+                   class="form-control rounded-3"
+                   required>
+        </div>
+
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary w-100 py-3 fw-semibold rounded-3">
+        Save Skill
+        <i class="fas fa-save ms-2"></i>
+    </button>
+</form>
+
+                
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/app.js' %}"></script>
+
+</body>
+</html>

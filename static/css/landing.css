@@ -1,0 +1,115 @@
+/* ☕ Premium Coffee Hero */
+.hero-section {
+    background: 
+        linear-gradient(135deg, var(--coffee-dark) 0%, var(--coffee-bean) 40%, var(--roasted-brown) 100%);
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(212, 165, 116, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(245, 232, 199, 0.18) 0%, transparent 40%),
+        radial-gradient(circle at 50% 10%, rgba(139, 69, 19, 0.15) 0%, transparent 50%);
+    animation: coffeeBrew 12s ease-in-out infinite;
+}
+
+@keyframes coffeeBrew {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+}
+
+/* Logo Circle */
+.logo-circle {
+    width: 120px;
+    height: 120px;
+    background: var(--caramel-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    box-shadow: 0 20px 40px rgba(212, 165, 116, 0.4);
+    animation: logoFloat 4s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(180deg); }
+}
+
+/* Tagline Cards */
+.tagline-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(212, 165, 116, 0.25);
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 30px rgba(92, 64, 51, 0.1);
+}
+
+.tagline-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(253, 246, 227, 0.98);
+    box-shadow: 0 25px 50px rgba(92, 64, 51, 0.2);
+}
+
+/* Animations */
+.animate-hero-title { 
+    animation: fadeInUp 1s ease-out 0.2s both; 
+}
+.animate-hero-subtitle { 
+    animation: fadeInUp 1s ease-out 0.4s both; 
+}
+.animate-hero-cta { 
+    animation: fadeInUp 1s ease-out 0.6s both; 
+}
+.animate-slide-up { 
+    animation: slideUp 0.8s ease-out both; 
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float { 
+    animation: float 5s ease-in-out infinite; 
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+}
+
+/* CTA Button */
+.cta-section .btn {
+    max-width: 380px;
+    border-radius: 16px;
+    font-size: 1.25rem;
+    padding: 1.25rem 3rem;
+    box-shadow: 0 20px 40px rgba(212, 165, 116, 0.4);
+    transition: all 0.3s ease;
+}
+
+.cta-section .btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 50px rgba(212, 165, 116, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .display-4 { font-size: 2.5rem !important; line-height: 1.2; }
+    .lead.fs-4 { font-size: 1.25rem !important; }
+    .tagline-card { margin-bottom: 1rem; }
+    .cta-section .btn { font-size: 1.1rem; padding: 1rem 2rem; }
+}
