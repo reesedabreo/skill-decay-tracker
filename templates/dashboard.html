@@ -138,8 +138,10 @@
                             {% if most_neglected_skill %}{{ most_neglected_skill.name }}{% else %}—{% endif %}
                         </h5>
                         <small class="text-muted">
-                            {% if most_neglected_skill %}{{ most_neglected_skill.days_since_practice }} days inactive{%
-                            endif %}
+                           {% if most_neglected_skill %}
+                              {{ most_neglected_skill.days_since_practice }} days inactive
+                           {% endif %}
+                        </small>
                         </small>
                     </div>
                 </div>
