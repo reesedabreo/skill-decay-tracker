@@ -1,27 +1,86 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const ctx = document.getElementById('healthChart');
 
-    if (!ctx) return;
+    const canvas = document.getElementById('healthChart');
+    if (!canvas) return;
 
-    const skillNames = window.skillNames || [];
-    const healthScores = window.healthScores || [];
+    const ctx = canvas.getContext('2d');
+
+    const names = window.skillNames || [];
+    const scores = (window.healthScores || []).map(s => Number(s));
+    console.log("Scores:", scores);
+
+    // 🎨 Dynamic colors based on score
+    const colors = scores.map(score => {
+        if (score >= 70) return 'rgba(40, 167, 69, 0.8)';     // green
+        if (score >= 40) return 'rgba(255, 193, 7, 0.8)';     // yellow
+        return 'rgba(220, 53, 69, 0.8)';                      // red
+    });
+
+    const borderColors = scores.map(score => {
+        if (score >= 70) return 'rgba(40, 167, 69, 1)';
+        if (score >= 40) return 'rgba(255, 193, 7, 1)';
+        return 'rgba(220, 53, 69, 1)';
+    });
 
     new Chart(ctx, {
-        type: 'radar',
+        type: 'bar',
         data: {
-            labels: skillNames,
+            labels: names,
             datasets: [{
-                label: 'Skill Health',
-                data: healthScores,
-                borderWidth: 3
+                label: 'Skill Health Score',
+                data: scores,
+                backgroundColor: colors,
+                borderColor: borderColors,
+                borderWidth: 2,
+                borderRadius: 10,
+                minBarLength: 5
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Current Health Status of Your Skills',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            let level = 'High Risk';
+                            if (value >= 70) level = 'Low Risk';
+                            else if (value >= 40) level = 'Medium Risk';
+
+                            return `Health: ${value}/100 (${level})`;
+                        }
+                    }
+                }
+            },
             scales: {
-                r: {
+                y: {
                     beginAtZero: true,
-                    max: 100
+                    max: 100,
+                    ticks: {
+                        stepSize: 20
+                    },
+                    title: {
+                        display: true,
+                        text: 'Health Score'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Skills'
+                    }
                 }
             }
         }

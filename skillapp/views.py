@@ -1,4 +1,5 @@
 import csv, os
+import json
 from django.conf import settings
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -7,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import Skill
 from django.db import models
+from django.contrib import messages
 from django.contrib.auth.models import User
 from datetime import date
 def index_view(request):
@@ -55,53 +57,109 @@ def register_view(request):
     return render(request, "register.html")
 @login_required
 def dashboard_view(request):
+    popup_recommendation = None
 
     if request.method == "POST":
-        name = request.POST.get("name")
-        category = request.POST.get("category")
+        name = request.POST.get("name", "").strip()
+        category = request.POST.get("category", "").strip()
         target_hours = request.POST.get("target_hours")
 
         if name and category and target_hours:
-            Skill.objects.create(
+            existing_skill = Skill.objects.filter(
                 user=request.user,
-                name=name,
-                category=category,
-                target_hours=target_hours,
-                completed_hours=0
-            )
-            return redirect("dashboard")  # prevents duplicate submission
+                name__iexact=name
+            ).first()
 
+            if not existing_skill:
+                Skill.objects.create(
+                    user=request.user,
+                    name=name,
+                    category=category,
+                    target_hours=target_hours,
+                    completed_hours=0
+                )
+                messages.success(request, f"{name} added successfully!")  
+
+                skills_after_add = Skill.objects.filter(user=request.user)
+
+                # only generate popup recommendations for the newly added skill
+                popup_recommendations = recommend_skills([name.lower()], skills_after_add)
+
+                # keep only recommendations based on the skill just added
+                popup_recommendations = [
+                    rec for rec in popup_recommendations
+                    if rec["based_on"].strip().lower() == name.lower()
+                ]
+
+                if popup_recommendations:
+                    popup_recommendation = popup_recommendations[0]
+            else:
+                messages.warning(request, f"{name} already exists.")
     skills = Skill.objects.filter(user=request.user)
-    skill_names = [skill.name for skill in skills]
-    health_scores = [skill.health_score for skill in skills]
-    user_skills = [skill.name.lower() for skill in skills]
-    recommendations = recommend_skills(user_skills)
-    top_action = None
 
+    alerts = []
+    for skill in skills:
+        if skill.days_since_practice > 7:
+            alerts.append({
+                "type": "warning",
+                "message": f"You haven’t practiced {skill.name} for {skill.days_since_practice} days"
+            })
+
+        if skill.risk_level == "High":
+            alerts.append({
+                "type": "danger",
+                "message": f"{skill.name} is at HIGH risk — practice immediately!"
+            })
+        elif skill.risk_level == "Medium":
+            alerts.append({
+                "type": "info",
+                "message": f"{skill.name} needs attention"
+            })
+
+    unique_skills = {}
+    for skill in skills:
+        unique_skills[skill.name] = skill.health_score
+
+    skill_names = json.dumps(list(unique_skills.keys()))
+    health_scores = json.dumps(list(unique_skills.values()))
+
+    user_skills = [skill.name.lower() for skill in skills]
+    recommendations = recommend_skills(user_skills, skills)
+
+    top_action = None
     if recommendations:
-       top = recommendations[0]
-       top_action = f"Focus on {top['skill']} (based on {top['based_on']})" 
-    # ---- COUNTERS ----
+        top = recommendations[0]
+        top_action = f"Focus on {top['skill']} — high demand & your {top['based_on']} skill is weakening"
+
     total_skills = skills.count()
 
-    healthy_skills = skills.filter(
-        completed_hours__gte=models.F('target_hours')
-    ).count()
+    healthy_skills = sum(1 for skill in skills if skill.risk_level == "Low")
+    at_risk_skills = sum(1 for skill in skills if skill.risk_level in ["Medium", "High"])
 
-    at_risk_skills = skills.filter(
-        completed_hours__lt=models.F('target_hours')
-    ).count()
+    avg_health = round(
+        sum(skill.health_score for skill in skills) / total_skills, 1
+    ) if total_skills > 0 else 0
+
+    strongest_skill = max(skills, key=lambda s: s.health_score, default=None)
+    weakest_skill = min(skills, key=lambda s: s.health_score, default=None)
+    most_neglected_skill = max(skills, key=lambda s: s.days_since_practice, default=None)
 
     return render(request, "dashboard.html", {
         "skills": skills,
         "total_skills": total_skills,
         "healthy_skills": healthy_skills,
         "at_risk_skills": at_risk_skills,
+        "avg_health": avg_health,
+        "strongest_skill": strongest_skill,
+        "weakest_skill": weakest_skill,
+        "most_neglected_skill": most_neglected_skill,
         "recommendations": recommendations,
         "top_action": top_action,
-         "skill_names": skill_names,
-         "health_scores": health_scores,
-})
+        "skill_names": skill_names,
+        "health_scores": health_scores,
+        "alerts": alerts,
+        "popup_recommendation": popup_recommendation,
+    })
 @login_required
 def add_hours(request, skill_id):
     skill = get_object_or_404(Skill, id=skill_id, user=request.user)
@@ -112,6 +170,43 @@ def add_hours(request, skill_id):
             skill.completed_hours += hours
             skill.last_practiced = date.today()
             skill.save()
+            messages.success(request, f"{hours} hours added to {skill.name}.")
+
+    return redirect("dashboard")
+
+@login_required
+def delete_skill(request, skill_id):
+    skill = get_object_or_404(Skill, id=skill_id, user=request.user)
+
+    if request.method == "POST":
+        skill_name = skill.name
+        skill.delete()
+        messages.success(request, f"{skill_name} deleted successfully.")
+
+    return redirect("dashboard")
+
+
+@login_required
+def practice_recommended_skill(request):
+    if request.method == "POST":
+        skill_name = request.POST.get("skill_name", "").strip()
+        category = request.POST.get("category", "Recommended").strip()
+
+        if skill_name:
+            existing_skill = Skill.objects.filter(
+                user=request.user,
+                name__iexact=skill_name
+            ).first()
+
+            if not existing_skill:
+                Skill.objects.create(
+                    user=request.user,
+                    name=skill_name,
+                    category=category,
+                    target_hours=30,
+                    completed_hours=0
+                )   
+                messages.success(request, f"{skill_name} added to your skills.")    
 
     return redirect("dashboard")
 
@@ -130,38 +225,74 @@ def load_dataset():
 
     return dataset
 
-def recommend_skills(user_skills):
+def recommend_skills(user_skills, skills):
     dataset = load_dataset()
     recommendations = []
 
-    user_text = " ".join(user_skills)
-
     for row in dataset:
-        skill_text = row['skill']
+        skill_text = row['skill'].strip().lower()
         alternatives = row['modern_alternatives']
         demand = int(row['demand_score'])
         category = row['category']
 
-        texts = [user_text, skill_text]
-        vectorizer = CountVectorizer().fit_transform(texts)
-        similarity = cosine_similarity(vectorizer)[0][1]
+        matched_user_skill = None
+        user_health = 50
 
-        if similarity > 0.3 or any(uskill in skill_text.lower() for uskill in user_skills):
-            if demand >= 85:
-                for alt in alternatives.split(','):
-                    recommendations.append({
-                        "skill": alt.strip(),
-                        "based_on": skill_text,
-                        "demand": demand,
-                        "category": category
-                    })
+        for skill in skills:
+            db_skill = skill.name.strip().lower()
+
+            # Better two-way matching
+            if (
+                skill_text == db_skill
+                or skill_text in db_skill
+                or db_skill in skill_text
+            ):
+                matched_user_skill = skill.name
+                user_health = skill.health_score
+                break
+
+        if matched_user_skill and demand >= 60:
+            for alt in alternatives.split(','):
+                alt = alt.strip()
+
+                # do not recommend a skill user already has
+                if alt.lower() in [s.name.lower() for s in skills]:
+                    continue
+
+                priority = int((100 - user_health) * 0.6 + demand * 0.4)
+
+                recommendations.append({
+                    "skill": alt,
+                    "based_on": matched_user_skill,
+                    "demand": demand,
+                    "category": category,
+                    "priority": priority,
+                    "reason": f"{matched_user_skill} is weakening, {alt} is trending in market"
+                })
 
     if not recommendations:
         recommendations = [{
             "skill": "Communication Skills",
             "based_on": "General",
             "demand": 90,
-            "category": "Soft Skills"
+            "category": "Soft Skills",
+            "priority": 80,
+            "reason": "Useful across all domains"
         }]
+
+    # Deduplicate by recommended skill, keep highest priority
+    unique_recommendations = {}
+    for rec in recommendations:
+        key = rec["skill"].lower()
+        if key not in unique_recommendations or rec["priority"] > unique_recommendations[key]["priority"]:
+            unique_recommendations[key] = rec
+
+    recommendations = list(unique_recommendations.values())
+
+    recommendations = sorted(
+        recommendations,
+        key=lambda x: x.get("priority", 0),
+        reverse=True
+    )
 
     return recommendations

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+import math
 
 
 class Skill(models.Model):
@@ -26,9 +27,22 @@ class Skill(models.Model):
     
     @property
     def health_score(self):
-        score = 100
-        score -= self.days_since_practice * 4   # lose 4 points per day
-        score += self.progress * 0.3           # progress adds stability
+        days = self.days_since_practice
+
+    # 🔥 Exponential Decay (MAIN ALGORITHM)
+        decay = 100 * math.exp(-0.1 * days)
+
+    # 📈 Progress contribution
+        if self.progress >= 100:
+             progress_boost = 70
+        else:
+             progress_boost = self.progress * 0.5
+
+        score = decay + progress_boost
+
+    # 🔥 Dynamic behavior (user inactivity penalty)
+        if days > 15:
+           score -= 10
 
         return max(0, min(100, int(score)))
     

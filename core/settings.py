@@ -118,3 +118,13 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 LOGIN_URL = "login"
+# 🔥 EMAIL CONFIGURATION (REAL EMAIL)
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'dabreoreese@gmail.com'        # 👉 replace with your Gmail
+EMAIL_HOST_PASSWORD = 'ddvqjrspmgdcmyig'       # 👉 paste App Password here
